@@ -8,8 +8,7 @@ import {
   knexSnakeCaseMappers
 } from 'objection';
 
-import * as convertXmlToJSON from 'xml2js'
-import axios from 'axios';
+import {browardCountyCDLCheck} from './lib/functions/browardCountyCheck';
 
 //Helpers
 import {
@@ -66,11 +65,13 @@ export const migrate: APIGatewayProxyHandler = async (event, _context) => {
  * @returns {string} - success or error
  */
 export const rundlReports: APIGatewayProxyHandler = async (_, _context) => {
+  browardCountyCDLCheck('D525500893210');
+  return;
 
   // log starting
   // log number of subs
   // log number of DL reports found vs making
-
+// TODO switch to momment
   const thirtyDaysAgo = new Date(new Date().setDate(new Date().getDate() - 30));
 
   // get all valid Subscriptions with no notification in the last 30 days 
@@ -100,53 +101,24 @@ export const rundlReports: APIGatewayProxyHandler = async (_, _context) => {
   const uniqueDlIds = [...new Set(dlIdsThatNeedReport)];
 
   const driverLicenses = await DriverLicense.query().whereIn('id', uniqueDlIds);
-
-  const baseURL = 'https://www2.miami-dadeclerk.com/Developers/';
-  const miamiDadeApiAuthKey = process.env['MIAMI_DADE_COUNTY_AUTH_KEY'] || 'NOKEY';
-  const apiMap = {
-    dlNumberSearch: 'api/TrafficWeb?DL={DL}&AuthKey='
-  }
-
   for (const dl of driverLicenses) {
     try {
 
-      //  build url
-      const dlRequestUrl = baseURL.concat(apiMap.dlNumberSearch).replace('{DL}', dl.driverLicenseNumber).concat(miamiDadeApiAuthKey);
-      const dlRecord = await DriverLicense.query()
-        .where('driverLicenseNumber', dl.driverLicenseNumber).first();
-
-      // make request, XML only has information
-      const request = await axios.get(dlRequestUrl, {
-        headers: {
-          'Accept': 'application/xml',
-        }
-      });
-      const response = request.data;
-      const jsonResponse = await convertXmlToJSON.parseStringPromise(response);
-
+      browardCountyCDLCheck(dl.driverLicenseNumber);
       //<StatusDesc>NO CASE FOUND FOR A111-111-10-011-1 DRIVER LICENSE NOT DATABASE</StatusDesc> not sure if this is good enough to ommit all with a similar statusDesc
 
-      console.dir(jsonResponse);
-      await DriverLicenseReport.query().insert({
-        driverLicenseId: dlRecord.id,
-        report: response,
-        reportJsonb: jsonResponse,
-        county: 'MIAMI-DADE'
-      })
+      // console.dir(jsonResponse);
+      // await DriverLicenseReport.query().insert({
+      //   driverLicenseId: dlRecord.id,
+      //   report: response,
+      //   reportJsonb: jsonResponse,
+      //   county: 'MIAMI-DADE'
+      // })
 
     } catch (error) {
-      // alert on these errors
+      // alert on these errors but don't halt thread cause we'll have to keep going
+      console.error(`unable to process DLId ${dl.id}`);
       console.error(error);
-      return {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Credentials': true,
-        },
-        statusCode: 422,
-        body: JSON.stringify({
-          description: error.message
-        }),
-      };
     }
   }
 

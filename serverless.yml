@@ -47,4 +47,5 @@ functions:
           method: post
           cors: true
   rundlReports:
+    memorySize: 1024
     handler: handler.rundlReports
