@@ -6,17 +6,21 @@ const subscribeEndpoint = `https://api.${domain}${subscribePath}`;
 const formLocator = '#submitEmailForm';
 const subscribeButton = '#submitSubscribeButton';
 const subscriptionStatusLocator = '#subscriptionRequestStatus';
-const subscribeSplashButton = '#subscribeSplash';
-const subscribeMenuButton = '#subscribeMenu';
+const linksToSubscribeLocator = '.linkSubscribe'
+const subscribeContentLocator = '#subscribeContent';
 
 document.addEventListener('DOMContentLoaded', (event) => {
     
     // add ladda to button on submit, and remove on end of
     document.querySelector(formLocator).addEventListener('submit', submitEmail);
-    document.querySelector(subscribeSplashButton).addEventListener('click', document.querySelector(formLocator).scrollIntoView());
-    document.querySelector(subscribeMenuButton).addEventListener('click', document.querySelector(formLocator).scrollIntoView());
+    document.querySelectorAll(linksToSubscribeLocator).forEach(elm => elm.addEventListener('click',handleScrollToSubmit ));
 
 });
+
+function handleScrollToSubmit (event) {
+    event.preventDefault();
+    document.querySelector(subscribeContentLocator).scrollIntoView()
+}
 
 async function submitEmail(event) {
     event.preventDefault();
@@ -27,7 +31,7 @@ async function submitEmail(event) {
     const countyClient = formData.get('countyClient')
     const phoneNumberClient = formData.get('phoneNumberClient');
     const driverLicenseIdClient = formData.get('driverLicenseIdClient');
-    if(emailAddressClient.length > 0 && typeof emailAddressClient === 'string' && typeof driverLicenseIdClient === 'string') {
+    if(emailAddressClient.length > 0 && typeof emailAddressClient === 'string' && typeof phoneNumberClient === 'string' && typeof driverLicenseIdClient === 'string') {
         // handle exceptions
         await fetch(subscribeEndpoint, {
             method: 'POST',

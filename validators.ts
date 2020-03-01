@@ -1,4 +1,4 @@
-import {isEmail, isMobilePhone} from 'validator';
+import {isEmail} from 'validator';
 import { Counties } from './models/driverLicenseReport';
 
 
@@ -17,18 +17,12 @@ export function validateEmail(emailAddress: string) {
   }
 
   
-  export function validatePhoneNumber(phoneNumber: string) {
-    if (typeof phoneNumber === 'string') {
+  export function validatePhoneNumber(phoneNumbeClient: string) {
+    if (typeof phoneNumbeClient === 'string') {
+      const phoneNumber = phoneNumbeClient.replace(/\D/g,'')
+  
       if (phoneNumber.length !== 10) {
-        throw new Error('Phone Number is Not 10 digists long');
-      }
-
-      if ( phoneNumber.replace(/\D/g,'').length !== 10) {
-        throw new Error('Phone Number not just digits');
-      }
-      
-      if (!isMobilePhone(phoneNumber)) {
-        throw new Error('Phone Number is invalid');
+        throw new Error('Phone Number is not 10 digits long');
       }
       return phoneNumber;
     } else {

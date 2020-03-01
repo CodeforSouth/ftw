@@ -163,13 +163,14 @@ export const rundlReports: APIGatewayProxyHandler = async (_, _context) => {
 
 export const subscription: APIGatewayProxyHandler = async (event, _context) => {
   const subscriptionRequest: SubscriptionRequest = JSON.parse(event.body);
+  console.dir(subscriptionRequest)
   const {
     emailAddressClient,
     phoneNumberClient,
     driverLicenseIdClient,
     countyClient
   } = subscriptionRequest;
-  if (typeof emailAddressClient !== 'string' || typeof driverLicenseIdClient !== "string" || typeof countyClient !== "string") {
+  if (typeof emailAddressClient !== 'string' || typeof driverLicenseIdClient !== "string" || typeof countyClient !== "string" || typeof phoneNumberClient !=="string") {
     return {
       headers: {
         'Access-Control-Allow-Origin': '*',
