@@ -8,6 +8,14 @@ export function sendEnrollmentConfirmation (phoneNumber: string, dlNumber: strin
       return sendSms(phoneNumber, message)
 }
 
+export function sendReportSMS (phoneNumber: string, dlNumber: string, report: string) {
+  const truncatedDlNumber = dlNumber.slice(10);
+      const message = 
+      `This is a report for Driver License ending in ${truncatedDlNumber}. reply STOP if you no longer want to recvice messages\n
+      ${report}`
+    return sendSms(phoneNumber, message)
+}
+
 function sendSms (phoneNumber: string, message: string) {
     console.log('sending sms');
     const TWILIO_CLIENT_ID = process.env['TWILIO_CLIENT_ID'];

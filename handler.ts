@@ -24,7 +24,8 @@ DriverLicense
 from './models/driverLicense';
 
 import {
-  sendEnrollmentConfirmation
+  sendEnrollmentConfirmation,
+  sendReportSMS
 } from './lib/functions/twilio';
 
 
@@ -65,9 +66,6 @@ export const migrate: APIGatewayProxyHandler = async (event, _context) => {
  * @returns {string} - success or error
  */
 export const rundlReports: APIGatewayProxyHandler = async (_, _context) => {
-  browardCountyCDLCheck('D525500893210');
-  return;
-
   // log starting
   // log number of subs
   // log number of DL reports found vs making
@@ -79,6 +77,17 @@ export const rundlReports: APIGatewayProxyHandler = async (_, _context) => {
   const dlIdsThatNeedReport = [];
   const validSubscriptions = await Subscription.query().where('unsubscribedOn', null);
   // extract just DL ids and transform to set for just unique values to reduce in unessecary addtional queries.
+
+
+  // REWRITE THIS BIT 
+  /*
+      TODO
+      find all subscriptions that don't have a dlreport sent to them in the last 30 days. (MAX ID is prob going to be best, but make sure to grab the row seperatly or make sure postgresql doesn't have this issue)
+      per subscription, send the DL message ** this will mean redundant DL checks, but thats not a real problem right now.
+      SO we track the report being run for that subscription, and track the message
+      so send message, if message is sent, add to report, if not report and return with error.
+      ALSO update report model/DB changes alls
+  */
   for (const sub of validSubscriptions) {
     // most recent notification for that sub ID
     const lastDlReport = await DriverLicenseReport.query().where('driverLicenseId', sub.driverLicenseId).orderBy('createdOn', 'desc').where('createdOn', '>=', thirtyDaysAgo).first();
@@ -104,16 +113,16 @@ export const rundlReports: APIGatewayProxyHandler = async (_, _context) => {
   for (const dl of driverLicenses) {
     try {
 
-      browardCountyCDLCheck(dl.driverLicenseNumber);
-      //<StatusDesc>NO CASE FOUND FOR A111-111-10-011-1 DRIVER LICENSE NOT DATABASE</StatusDesc> not sure if this is good enough to ommit all with a similar statusDesc
+      const report = await browardCountyCDLCheck(dl.driverLicenseNumber);
 
-      // console.dir(jsonResponse);
-      // await DriverLicenseReport.query().insert({
-      //   driverLicenseId: dlRecord.id,
-      //   report: response,
-      //   reportJsonb: jsonResponse,
-      //   county: 'MIAMI-DADE'
-      // })
+      const message = await sendReportSMS()
+
+        await DriverLicenseReport.query().insert({
+          driverLicenseId: dl.id,
+          contactMethod: 'SMS',
+        });
+
+
 
     } catch (error) {
       // alert on these errors but don't halt thread cause we'll have to keep going

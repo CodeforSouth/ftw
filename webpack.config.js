@@ -15,9 +15,16 @@ module.exports = {
     filename: '[name].js',
   },
   target: 'node',
-  externals: { knex: 'commonjs knex' },
+  externals: { 
+    'chrome-aws-lambda': 'chrome-aws-lambda',
+    knex: 'commonjs knex' 
+  },
   plugins: [
-     new CopyWebpackPlugin([{ from: './migrations/*.js', to: '' }], {}),
+
+    new CopyWebpackPlugin([
+      { from: './migrations/*.js', to: '' },
+      { from: 'node_modules/chrome-aws-lambda', to: 'node_modules/chrome-aws-lambda' }
+    ])
 ],
   module: {
     rules: [
