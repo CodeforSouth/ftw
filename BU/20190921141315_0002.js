@@ -4,7 +4,7 @@ exports.up = async function(knex) {
 
       await knex.schema.createTable('driver_license_report', function (table) {
         table.uuid('id').primary();
-        table.jsonb('refrence').comment('Message sent to user');
+        table.jsonb('refrence').comment('Message refrence');
         // CREATE ENUM
         table.enu('contact_method', ['SMS', 'EMAIL', 'SMS+EMAIL', 'OTHER'], { useNative: true, enumName: 'contact_method' })
         table.uuid('driver_license_id').unsigned();

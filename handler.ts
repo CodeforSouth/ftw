@@ -8,7 +8,9 @@ import {
   knexSnakeCaseMappers
 } from 'objection';
 
-import {browardCountyCDLCheck} from './lib/functions/browardCountyCheck';
+import {
+  browardCountyCDLCheck
+} from './lib/functions/browardCountyCheck';
 
 //Helpers
 import {
@@ -33,9 +35,10 @@ import {
 import {
   SubscriptionRequest
 } from './subscription';
+
 import {
-  DriverLicenseReport
-} from './models/driverLicenseReport';
+  Notification
+} from './models/notification';
 
 const knexConfig = require('./knexfile');
 
@@ -49,7 +52,6 @@ Model.knex(knex);
 
 
 export const migrate: APIGatewayProxyHandler = async (event, _context) => {
-  console.dir('here');
   await knex.migrate.latest(knexConfig);
 
   return {
@@ -69,12 +71,11 @@ export const rundlReports: APIGatewayProxyHandler = async (_, _context) => {
   // log starting
   // log number of subs
   // log number of DL reports found vs making
-// TODO switch to momment
+  // TODO switch to momment
   const thirtyDaysAgo = new Date(new Date().setDate(new Date().getDate() - 30));
 
   // get all valid Subscriptions with no notification in the last 30 days 
   // what if no notification but drivers report is last 30? 
-  const dlIdsThatNeedReport = [];
   const validSubscriptions = await Subscription.query().where('unsubscribedOn', null);
   // extract just DL ids and transform to set for just unique values to reduce in unessecary addtional queries.
 
@@ -89,48 +90,37 @@ export const rundlReports: APIGatewayProxyHandler = async (_, _context) => {
       ALSO update report model/DB changes alls
   */
   for (const sub of validSubscriptions) {
-    // most recent notification for that sub ID
-    const lastDlReport = await DriverLicenseReport.query().where('driverLicenseId', sub.driverLicenseId).orderBy('createdOn', 'desc').where('createdOn', '>=', thirtyDaysAgo).first();
-    if (!lastDlReport) {
-      dlIdsThatNeedReport.push(sub.driverLicenseId);
-    }
-  }
+    // most recent notification for that sub ID gotta use MAX here instead
+    const lastNotification = await Notification.query().where('driverLicenseId', sub.driverLicenseId).orderBy('createdOn', 'desc').where('createdOn', '>=', thirtyDaysAgo).first();
+    if (!lastNotification) {
+      try {
+        const driverLicense = await DriverLicense.query().where('id', sub.driverLicenseId).first();
+        const {
+          reportInnerText
+        } = await browardCountyCDLCheck(driverLicense.driverLicenseNumber);
 
-  if (dlIdsThatNeedReport.length === 0) {
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Credentials': true,
-      },
-      body: 'no subscriptions require report'
-    };
-  }
+        const message = await sendReportSMS(sub.phoneNumber, driverLicense.driverLicenseNumber, reportInnerText);
 
-  const uniqueDlIds = [...new Set(dlIdsThatNeedReport)];
+        const messageResult = message[0];
 
-  const driverLicenses = await DriverLicense.query().whereIn('id', uniqueDlIds);
-  for (const dl of driverLicenses) {
-    try {
+        delete messageResult.body;
 
-      const report = await browardCountyCDLCheck(dl.driverLicenseNumber);
-
-      const message = await sendReportSMS()
-
-        await DriverLicenseReport.query().insert({
-          driverLicenseId: dl.id,
+        // we need to make this much more bomb proof (make more columns optional) incase something happens.
+        await Notification.query().insert({
+          driverLicenseId: sub.driverLicenseId,
           contactMethod: 'SMS',
+          subscriptionId: sub.id,
+          notificationRequestResponse: messageResult,
+          county: sub.county,
+          status: messageResult.status
         });
-
-
-
-    } catch (error) {
-      // alert on these errors but don't halt thread cause we'll have to keep going
-      console.error(`unable to process DLId ${dl.id}`);
-      console.error(error);
+      } catch (error) {
+        // alert on these errors but don't halt thread cause we'll have to keep going
+        console.error(`unable to process subId ${sub.id}`);
+        console.error(error);
+      }
     }
   }
-
   return {
     statusCode: 200,
     headers: {
@@ -144,14 +134,13 @@ export const rundlReports: APIGatewayProxyHandler = async (_, _context) => {
 
 export const subscription: APIGatewayProxyHandler = async (event, _context) => {
   const subscriptionRequest: SubscriptionRequest = JSON.parse(event.body);
-  console.dir(subscriptionRequest)
   const {
     emailAddressClient,
     phoneNumberClient,
     driverLicenseIdClient,
     countyClient
   } = subscriptionRequest;
-  if (typeof emailAddressClient !== 'string' || typeof driverLicenseIdClient !== "string" || typeof countyClient !== "string" || typeof phoneNumberClient !=="string") {
+  if (typeof emailAddressClient !== 'string' || typeof driverLicenseIdClient !== "string" || typeof countyClient !== "string" || typeof phoneNumberClient !== "string") {
     return {
       headers: {
         'Access-Control-Allow-Origin': '*',
@@ -165,8 +154,8 @@ export const subscription: APIGatewayProxyHandler = async (event, _context) => {
   try {
     console.dir(`starting validation`);
     const emailAddress = validateEmail(emailAddressClient);
-    const phoneNumber =  validatePhoneNumber(phoneNumberClient);
-    
+    const phoneNumber = validatePhoneNumber(phoneNumberClient);
+
     const {
       county,
       driverLicenseNumber
@@ -174,16 +163,16 @@ export const subscription: APIGatewayProxyHandler = async (event, _context) => {
     console.dir(`client validation ended`);
     // TODO upsert  (adjust for concurrency). INSPO https://gist.github.com/derhuerst/7b97221e9bc4e278d33576156e28e12d
     // TODO sanitaize return values from DB with try catch
-    const existingDriverLicense = await DriverLicense.query().where('driverLicenseNumber', driverLicenseNumber).first()
+    let driverLicense = await DriverLicense.query().where('driverLicenseNumber', driverLicenseNumber).first()
 
-    if (existingDriverLicense) {
+    if (driverLicense) {
       const existingSubscription = await Subscription.query().where({
         emailAddress,
         phoneNumber,
-        driverLicenseId: existingDriverLicense.id
+        driverLicenseId: driverLicense.id
       }).first();
 
-      if (existingDriverLicense.disabled || existingSubscription) {
+      if (driverLicense.disabled || existingSubscription) {
         return {
           statusCode: 409,
           headers: {
@@ -195,45 +184,47 @@ export const subscription: APIGatewayProxyHandler = async (event, _context) => {
           }),
         };
       }
-
-      await Subscription.query().insert({
-        emailAddress,
-        phoneNumber,
-        driverLicenseId: existingDriverLicense.id,
-        subscribedOn: new Date()
+    } else {
+      driverLicense = await DriverLicense.query().insert({
+        driverLicenseNumber,
+        county,
+        disabled: false
       });
-
-      console.dir(`enrolled sending sms`);
-      await sendEnrollmentConfirmation(phoneNumberClient, driverLicenseIdClient);
-
-      return {
-        statusCode: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Credentials': true,
-        },
-        body: JSON.stringify({
-          message: 'success'
-        }),
-      };
     }
 
+
     // DL isn't found, need to create before moving forward
-    const newDriverLicense = await DriverLicense.query().insert({
-      driverLicenseNumber,
-      county,
-      disabled: false
-    });
-    // TODO validate DL here or exit?
-    await Subscription.query().insert({
+
+    const subscription = await Subscription.query().insert({
       emailAddress,
       phoneNumber,
-      driverLicenseId: newDriverLicense.id,
+      driverLicenseId: driverLicense.id,
+      county,
+      createdOn: new Date(),
       subscribedOn: new Date()
     });
-
+    console.dir(`enrolled sending sms`);
     await sendEnrollmentConfirmation(phoneNumberClient, driverLicenseIdClient);
 
+    try {
+      const report = await browardCountyCDLCheck(driverLicenseNumber);
+      const message = await sendReportSMS(subscription.phoneNumber, driverLicenseNumber, report);
+
+      // TODO handle messge response if error.
+
+      await Notification.query().insert({
+        driverLicenseId: subscription.driverLicenseId,
+        contactMethod: 'SMS',
+        subscriptionId: subscription.id,
+        notificationRequestResponse: message,
+        county: subscription.county,
+        status: 'SENT'
+      });
+
+    } catch (error) {
+      // log errors and alert better
+      console.dir(error);
+    }
     return {
       statusCode: 200,
       headers: {
@@ -244,7 +235,6 @@ export const subscription: APIGatewayProxyHandler = async (event, _context) => {
         message: 'success'
       }),
     };
-    // user signed up, sending sms notification
   } catch (error) {
     console.error(error);
     return {
