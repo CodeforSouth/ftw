@@ -8,10 +8,10 @@ export function sendEnrollmentConfirmation (phoneNumber: string, dlNumber: strin
       return sendSms(phoneNumber, message)
 }
 
-export function sendReportSMS (phoneNumber: string, dlNumber: string, report: string) {
+export function sendReportSMS (phoneNumber: string, dlNumber: string, report: string, source: string) {
   const truncatedDlNumber = dlNumber.slice(10);
       const message = 
-      `This is a report for Driver License ending in ${truncatedDlNumber}. reply STOP if you no longer want to recvice messages\n
+      `This is a report using ${source} as the source for Driver License ending in ${truncatedDlNumber}. reply STOP if you no longer want to recive messages\n
       ${report}`
     return sendSms(phoneNumber, message)
 }

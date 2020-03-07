@@ -4,12 +4,13 @@ export const browardCountyCDLCheck = async (dlNumber : string): Promise<any>  =>
     // DL number requried to not include dashes
     const dlNumberFormated = dlNumber.replace(/-|\s/g,'');
     const browardDlUrl = `https://www.browardclerk.org/Clerkwebsite/BCCOC2/Pubsearch/dl_stat_verif.aspx?DRVNUM=${dlNumberFormated}&iAction=1&go=no&shopperID=&sGo=yes`;
-    let browser;
+    let browser = null;
+
 try {
      browser = await chromium.puppeteer.launch({
       args: chromium.args,
-      defaultViewport: chromium.puppeteer.defaultViewport,
-      executablePath: await chromium.puppeteer.executablePath(),
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath,
       headless: chromium.headless,
     });
 
@@ -32,8 +33,12 @@ try {
     };
 
 } catch (error) {
-    await browser.close();
+    console.dir(error);
     throw error;
+  } finally {
+    if (browser !== null) {
+      await browser.close();
+    }
   }
 }
 

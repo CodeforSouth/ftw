@@ -121,7 +121,7 @@
                             <label for="phoneNumberClient">Phone Number<abbr title="required"></abbr></label>
                             <span class="form-pattern-desc">SMS messages will be sent to this number rates may apply</span>
                         <input id="phoneNumberInput" type="tel" name="phoneNumberClient" placeholder="2134567890"
-                            minlength="10" size="10" required pattern="^[0-9-+\s()]*$" autocomplete="tel">
+                            minlength="10" size="10" required pattern="\(?\d{3}\)?-? *\d{3}-? *-?\d{4}" autocomplete="tel">
                                 <label for="countyClient">County<abbr title="required"></abbr></label>
                                 <span class="form-pattern-desc">This helps with county specific information</span>
                             <select id="countySelect" name="countyClient" multiple size="4">

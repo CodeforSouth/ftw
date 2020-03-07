@@ -99,7 +99,7 @@ export const rundlReports: APIGatewayProxyHandler = async (_, _context) => {
           reportInnerText
         } = await browardCountyCDLCheck(driverLicense.driverLicenseNumber);
 
-        const message = await sendReportSMS(sub.phoneNumber, driverLicense.driverLicenseNumber, reportInnerText);
+        const message = await sendReportSMS(sub.phoneNumber, driverLicense.driverLicenseNumber, reportInnerText, 'Broward County Clerk Of Courts');
 
         const messageResult = message[0];
 
@@ -208,7 +208,7 @@ export const subscription: APIGatewayProxyHandler = async (event, _context) => {
 
     try {
       const report = await browardCountyCDLCheck(driverLicenseNumber);
-      const message = await sendReportSMS(subscription.phoneNumber, driverLicenseNumber, report);
+      const message = await sendReportSMS(subscription.phoneNumber, driverLicenseNumber, report, 'Broward County Clerk Of Courts');
 
       // TODO handle messge response if error.
 
