@@ -40,6 +40,7 @@ functions:
   migrate:
     handler: handler.migrate
   subscription:
+    timeout: 30
     memorySize: 1024
     handler: handler.subscription
     events:
@@ -48,5 +49,6 @@ functions:
           method: post
           cors: true
   rundlReports:
+    timeout: 60
     memorySize: 1024
     handler: handler.rundlReports

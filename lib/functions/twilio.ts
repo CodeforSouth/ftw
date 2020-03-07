@@ -23,7 +23,15 @@ function sendSms (phoneNumber: string, message: string) {
     const twilioClient = twilio(TWILIO_CLIENT_ID, TWILIO_AUTH_KEY);
     return Promise.all([twilioClient.messages.create({
         body: message,
-        to: '+1' + phoneNumber, // Text this number
+        to: phoneNumber, // Text this number
         from: '+17866289828' // From a valid Twilio number
       })])
+}
+
+export function lookupPhoneNumber (phoneNumber: string) {
+  const TWILIO_CLIENT_ID = process.env['TWILIO_CLIENT_ID'];
+  const TWILIO_AUTH_KEY = process.env['TWILIO_AUTH_KEY'];
+  const twilioClient = twilio(TWILIO_CLIENT_ID, TWILIO_AUTH_KEY);
+  return twilioClient.lookups.phoneNumbers(phoneNumber)
+  .fetch({countryCode: 'US'})
 }

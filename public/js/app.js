@@ -60,7 +60,7 @@ function handleSubscriptionStatus(response) {
     if (!response || !subscriptionStatusMap[response.status]) {
         subscriptionStatusPre.innerText = 'Uknown Error';
     } else {
-        subscriptionStatusPre.innerText = subscriptionStatusMap[response.status];
+        subscriptionStatusPre.innerText = `${subscriptionStatusMap[response.status]} ${response.description ? response.description: ''}`;
     }
     if(response.status === 200) {
         document.querySelector(formLocator).reset();

@@ -27,7 +27,8 @@ from './models/driverLicense';
 
 import {
   sendEnrollmentConfirmation,
-  sendReportSMS
+  sendReportSMS,
+  lookupPhoneNumber
 } from './lib/functions/twilio';
 
 
@@ -154,7 +155,9 @@ export const subscription: APIGatewayProxyHandler = async (event, _context) => {
   try {
     console.dir(`starting validation`);
     const emailAddress = validateEmail(emailAddressClient);
-    const phoneNumber = validatePhoneNumber(phoneNumberClient);
+    const {phoneNumber} = await lookupPhoneNumber(phoneNumberClient);
+    
+    validatePhoneNumber(phoneNumber);
 
     const {
       county,
@@ -207,8 +210,17 @@ export const subscription: APIGatewayProxyHandler = async (event, _context) => {
     await sendEnrollmentConfirmation(phoneNumberClient, driverLicenseIdClient);
 
     try {
-      const report = await browardCountyCDLCheck(driverLicenseNumber);
-      const message = await sendReportSMS(subscription.phoneNumber, driverLicenseNumber, report, 'Broward County Clerk Of Courts');
+
+      const {
+        reportInnerText
+      } = await browardCountyCDLCheck(driverLicense.driverLicenseNumber);
+
+      const message = await sendReportSMS(phoneNumber, driverLicense.driverLicenseNumber, reportInnerText, 'Broward County Clerk Of Courts');
+
+      const messageResult = message[0];
+
+      delete messageResult.body;
+
 
       // TODO handle messge response if error.
 
@@ -216,9 +228,9 @@ export const subscription: APIGatewayProxyHandler = async (event, _context) => {
         driverLicenseId: subscription.driverLicenseId,
         contactMethod: 'SMS',
         subscriptionId: subscription.id,
-        notificationRequestResponse: message,
+        notificationRequestResponse: messageResult,
         county: subscription.county,
-        status: 'SENT'
+        status: messageResult.status
       });
 
     } catch (error) {

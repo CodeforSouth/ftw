@@ -21,8 +21,8 @@ export function validateEmail(emailAddress: string) {
     if (typeof phoneNumbeClient === 'string') {
       const phoneNumber = phoneNumbeClient.replace(/\D/g,'')
   
-      if (phoneNumber.length !== 10) {
-        throw new Error('Phone Number is not 10 digits long');
+      if (phoneNumber.length !== 11) {
+        throw new Error('Phone Number is not 11 digits long');
       }
       return phoneNumber;
     } else {
