@@ -40,7 +40,7 @@
             <a class="pure-menu-heading" href="/">Drive Fine</a>
             <ul class="pure-menu-list">
                 <li class="pure-menu-item"><a href="#" class="pure-menu-link linkSubscribe">Subscribe</a></li>
-                <li class="pure-menu-item"><a href="/tos.html" class="pure-menu-link">Terms Of Service</a></li>
+                <li class="pure-menu-item"><a href="/tou.html" class="pure-menu-link">Terms Of Use</a></li>
             </ul>
         </div>
     </div>
@@ -60,7 +60,8 @@
         </div>
 
         <div class="content">
-            <h2 class="content-head is-center">Stay informed of your Driver License with updates and reports.</h2>
+            <h2 class="content-head is-center">Stay informed of your Driver License.</h2>
+            <h3 class="content-head is-center">Via Email, SMS Updates and Reports.</h2>
 
             <div class="pure-g">
                 <div class="l-box pure-u-1 pure-u-md-1-2 pure-u-lg-1-4">
@@ -108,7 +109,7 @@
             </div>
         </div>
 
-        <div class="content" id="subscribeContent">
+        <div class="content content-subscribe" id="subscribeContent">
             <h2 class="content-head is-center">Subscribe</h2>
             <div class="pure-g">
                 <div class="l-box-lrg pure-u-5-5">
@@ -133,21 +134,23 @@
                                 <label for="driverLicenseIdClient">Driver License<abbr title="required"></abbr>
                                 </label>
                                 <span class="form-pattern-desc">Just as you see it on your Driver License including
-                                    dashes</span>
+                                    dashes. An example: A123-456-78-912-0</span>
                             <input id="driverLicenseIdInput" type="text" name="driverLicenseIdClient"
-                                placeholder="A111-111-11-111-1" minlength="17" size="17" required
-                                pattern='[A-Za-z]{1}\d{3}[\-]\d{3}[\-]\d{2}[\-]\d{3}[\-]\d$' autocomplete="off">
+                                placeholder="A123-456-78-912-0" minlength="13" size="17" required
+                                pattern="^[a-zA-Z]{1}\d{3}[- ]?\d{3}[- ]?\d{2}[- ]?\d{3}[- ]?\d{1}$" autocomplete="off">
                                 <label for="agreementClient" class="pure-checkbox">
                                     <input id="agreementInput" type="checkbox" name="agreementClient" required
                                         autocomplete="off">
-                                        I agree to the <a href="tou.html">Terms of Use</a> and that
-                                        rates may apply.
+                                        I agree to the <a href="tou.html">Terms of Use</a> and understand that SMS messaging and Data rates may apply. 
                                 </label>
                             <div class="pure-g  pure-u-5-5">
                                 <input class="pure-button pure-button-primary" id="submitSubscribeButton" type="submit" value="Subscribe">
                             </div>
                     </form>
-                    <pre class="is-center" id="subscriptionRequestStatus"></pre>
+                    <div class="content is-center">
+                        <span id="subscriptionRequestStatus"></span>
+                    </div>
+                        
                 </div>
             </div>
         </div>
@@ -158,7 +161,7 @@
                     <p> Want to check your driver License status yourself for free? Go to: <a target="_blank"
                             href="https://services.flhsmv.gov/dlcheck/">https://services.flhsmv.gov/dlcheck/</a></p>
                     <p>This project is Open Source - <a href="https://github.com/krysttian/ftw/">Source Code</a></p>
-                    <p>support@drivefine.com | 2019-2020</p>
+                    <p>Contact: support @drive fine [.] com | web services by www.2am.miami | 2019-2020</p>
                 </div>
             </div>
         </div>

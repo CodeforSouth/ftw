@@ -216,11 +216,8 @@ export const subscription: APIGatewayProxyHandler = async (event, _context) => {
       } = await browardCountyCDLCheck(driverLicense.driverLicenseNumber);
 
       const message = await sendReportSMS(phoneNumber, driverLicense.driverLicenseNumber, reportInnerText, 'Broward County Clerk Of Courts');
-
       const messageResult = message[0];
-
       delete messageResult.body;
-
 
       // TODO handle messge response if error.
 

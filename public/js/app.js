@@ -25,6 +25,10 @@ function handleScrollToSubmit (event) {
 async function submitEmail(event) {
     event.preventDefault();
     document.querySelector(subscribeButton).disabled = true;
+    const subscriptionStatusSpan = document.querySelector(subscriptionStatusLocator);
+        subscriptionStatusSpan.innerText = '';
+        subscriptionStatusSpan.classList.remove('warning', 'success');
+        subscriptionStatusSpan.innerText = 'Processing';
     const formData = new FormData(document.querySelector(formLocator));
     // TODO add shimming so we can make this alot easier.
     const emailAddressClient = formData.get('emailAddressClient');
@@ -43,8 +47,9 @@ async function submitEmail(event) {
         })
         .finally(() => document.querySelector(subscribeButton).disabled = false);
     } else {
-        const subscriptionStatusPre = document.querySelector(subscriptionStatusLocator);
-        subscriptionStatusPre.innerText = 'Form Submission is incomplete, if you belive this is an error please email support@drivefine.com for support';
+        const subscriptionStatusSpan = document.querySelector(subscriptionStatusLocator);
+        subscriptionStatusSpan.innerText = 'Form Submission is incomplete, if you belive this is an error please email support@drivefine.com for support';
+        subscriptionStatusSpan.classList.remove('warning', 'success');
     }
 }
 
@@ -56,13 +61,19 @@ const subscriptionStatusMap = {
 }
 
 function handleSubscriptionStatus(response) {
-    const subscriptionStatusPre = document.querySelector(subscriptionStatusLocator);
+    const subscriptionStatusSpan = document.querySelector(subscriptionStatusLocator);
     if (!response || !subscriptionStatusMap[response.status]) {
-        subscriptionStatusPre.innerText = 'Uknown Error';
+        subscriptionStatusSpan.innerText = 'Uknown Error';
+        subscriptionStatusSpan.classList.add('warning');
     } else {
-        subscriptionStatusPre.innerText = `${subscriptionStatusMap[response.status]} ${response.description ? response.description: ''}`;
+        subscriptionStatusSpan.innerText = `${subscriptionStatusMap[response.status]} ${response.description ? response.description: ''}`;
+        if(response.status !== 200) {
+            subscriptionStatusSpan.classList.add('warning');
+        }
     }
     if(response.status === 200) {
         document.querySelector(formLocator).reset();
+        subscriptionStatusSpan.classList.add('success');
     }
 }
+
