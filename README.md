@@ -75,9 +75,13 @@ Move to service level accounts
 
 # Next Actions
 
-## Tasks
+## Experince | Tasked 
+
+What I learned since I have been here as a resident is that waiting in line is part of the queue. 
+I feel like from a previously licensed out of state driver, having earned endorsements for Class A and M Vehicles from the department of Motor Vehicles in Oklahoma, that the system here is jammed with users and operations seems to be stressed and weak in the response to demand and the quality of drivers here does seem to suffer. Most of my time in transporting myself before and after earning my Licenses here, using the roads as a biker laned with initiatives in Ft. Lauderdale to literally pave the way with green space dedicated to laned trafficking bikers was great. But, even now this space is squeezed with electric operated personal vehicles and the rules become suggestions at best. Perhaps more developments could be continued for awareness and for winning best in service for tourism as well. (*Brad)
 
 ## Members
 * Quyen
 * Mireya
 * Pedro
+* Brad 
