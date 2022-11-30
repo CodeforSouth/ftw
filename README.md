@@ -73,3 +73,11 @@ https://aws.amazon.com/blogs/database/managing-postgresql-users-and-roles/
 https://www.postgresql.org/docs/current/runtime-config-connection.html#GUC-PASSWORD-ENCRYPTION
 Move to service level accounts
 
+# Next Actions
+
+## Tasks
+
+## Members
+* Quyen
+* Mireya
+* Pedro
